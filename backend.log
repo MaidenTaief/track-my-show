@@ -1,0 +1,24 @@
+yarn run v1.22.22
+$ ts-node-dev --respawn --transpile-only src/server.ts
+[INFO] 23:00:36 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.8.3)
+[2025-07-10T21:00:37.135Z] INFO  Google Drive service initialized successfully
+[2025-07-10T21:00:37.141Z] INFO  🚀 Server running on port 8000
+[2025-07-10T21:00:37.141Z] INFO  📊 Environment: development
+[2025-07-10T21:00:37.141Z] INFO  🔗 API Base URL: http://localhost:8000/api
+[2025-07-10T21:00:37.141Z] INFO  🏥 Health Check: http://localhost:8000/health
+::1 - - [10/Jul/2025:21:00:38 +0000] "GET /health HTTP/1.1" 200 84 "-" "curl/8.7.1"
+::1 - - [10/Jul/2025:21:03:02 +0000] "GET /api/articles HTTP/1.1" 200 3969 "-" "curl/8.7.1"
+::1 - - [10/Jul/2025:21:04:07 +0000] "GET /api/articles?status=all&sortBy=createdAt&sortOrder=desc HTTP/1.1" 200 3969 "http://localhost:5174/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+::1 - - [10/Jul/2025:21:04:07 +0000] "GET /api/articles?status=all&sortBy=createdAt&sortOrder=desc HTTP/1.1" 304 - "http://localhost:5174/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-07-10T21:04:48.729Z] INFO  Article created: f1dcbafb-e9ad-4c29-a979-dd6f03137986 - Test Article
+::1 - - [10/Jul/2025:21:04:48 +0000] "POST /api/articles HTTP/1.1" 201 360 "-" "curl/8.7.1"
+::1 - - [10/Jul/2025:21:05:22 +0000] "GET /api/articles/5 HTTP/1.1" 200 651 "http://localhost:5174/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+::1 - - [10/Jul/2025:21:05:22 +0000] "GET /api/articles/5 HTTP/1.1" 304 - "http://localhost:5174/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-07-10T21:05:29.013Z] INFO  Article updated: 5 - kTumi robo niroboe
+::1 - - [10/Jul/2025:21:05:29 +0000] "PUT /api/articles/5 HTTP/1.1" 200 653 "http://localhost:5174/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+::1 - - [10/Jul/2025:21:05:29 +0000] "GET /api/articles?status=all&sortBy=createdAt&sortOrder=desc HTTP/1.1" 200 4267 "http://localhost:5174/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+::1 - - [10/Jul/2025:21:05:29 +0000] "GET /api/articles?status=all&sortBy=createdAt&sortOrder=desc HTTP/1.1" 304 - "http://localhost:5174/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-07-10T21:05:50.741Z] INFO  Article created: dd2e387c-54dc-4fb3-8915-c9fca4906807 - kk
+::1 - - [10/Jul/2025:21:05:50 +0000] "POST /api/articles HTTP/1.1" 201 397 "http://localhost:5174/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+::1 - - [10/Jul/2025:21:05:50 +0000] "GET /api/articles?status=all&sortBy=createdAt&sortOrder=desc HTTP/1.1" 200 4600 "http://localhost:5174/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+::1 - - [10/Jul/2025:21:05:50 +0000] "GET /api/articles?status=all&sortBy=createdAt&sortOrder=desc HTTP/1.1" 304 - "http://localhost:5174/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
