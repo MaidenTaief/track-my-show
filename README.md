@@ -350,10 +350,10 @@ VITE_SSLCOMMERZ_STORE_ID=your_store_id
 
 ## 📞 **Support & Contact**
 
-- **Email**: support@trackmyshow.com
-- **Documentation**: [Wiki](https://github.com/yourusername/track-my-show/wiki)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/track-my-show/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/track-my-show/discussions)
+- **Email**: taiefmaiden@gmail.com
+- **Documentation**: [Wiki](https://github.com/MaidenTaief/track-my-show/wiki)
+- **Issues**: [GitHub Issues](https://github.com/MaidenTaief/track-my-show/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/MaidenTaief/track-my-show/discussions)
 
 ---
 
@@ -394,4 +394,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-*Last updated: January 2025*
+*Last updated: July 2025*
