@@ -1,8 +1,3 @@
-Read file: track-my-show/README.md
-Here is your latest `README.md` as it appears in your repository:
-
----
-
 # Track My Show
 
 Welcome to the Track My Show monorepo! This is an industry-ready, scalable platform for ticketing, event management, and live show discovery. The project is structured for real-world production use, with a modern tech stack and best practices in mind.
