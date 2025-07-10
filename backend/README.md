@@ -52,6 +52,32 @@ If you still have issues after following these steps, reboot your machine and tr
 
 # TrackMyShow Backend
 
+## Firebase Firestore Integration (Quick Start)
+
+This backend uses **Firebase Firestore** for persistent data storage. To set up Firestore:
+
+1. **Follow the full guide in [`FIREBASE_SETUP.md`](../FIREBASE_SETUP.md)** for step-by-step instructions.
+2. **Summary:**
+   - Create a Firebase project and Firestore DB
+   - Download your `serviceAccountKey.json` and place it in `backend/src/`
+   - Never commit this file (it's in `.gitignore`)
+   - Start the backend with:
+     ```bash
+     export PORT=3002
+     yarn dev
+     ```
+   - The backend will connect to Firestore and persist articles, events, etc.
+
+## Consistent Local Development Setup
+
+- **Backend always runs on port 3002** (set in `.env` or with `export PORT=3002`)
+- **Frontend always talks to backend via** `VITE_API_URL=http://localhost:3002/api` (set in `frontend/.env`)
+- Restart both servers after changing `.env` files
+
+## Troubleshooting
+- If the frontend cannot load data, check the browser console and ensure `import.meta.env.VITE_API_URL` is correct
+- If the backend cannot connect to Firestore, check the logs for credential or permission errors
+
 ## Express App Structure & Middleware (Current Work)
 
 This backend is built with Express and TypeScript, following a modular structure for scalability and maintainability. The main application logic is in `src/app.ts`.
