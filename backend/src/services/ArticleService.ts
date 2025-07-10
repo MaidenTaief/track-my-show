@@ -1,296 +1,456 @@
-import { v4 as uuidv4 } from 'uuid';
+import { firestore } from 'firebase-admin';
 import { Article, CreateArticleRequest, UpdateArticleRequest, ArticleFilter } from '../models/Article';
 import { Logger } from '../utils/Logger';
 
-// In-memory storage for development (replace with database later)
-let articles: Article[] = [
-  {
-    id: '1',
-    title: "'Tirthojatri' stages successful run in Dhaka after New York",
-    author: 'Author name',
-    description: '"Tirthojatri", directed by Tauquir Ahmed, took the stage at the Bangladesh Shilpakala Academy in Dhaka recently. This production marks...',
-    content: `Manjubur Rahman completed his MFA in Drawing and Painting at the Institute of Fine Art of the University of Dhaka. He has had a number of solo exhibitions and projects in exhibitions around the world, throughout his career.\n\nHis major public collections are in Kunsthaus Zürich; Neue Gallery, Kassel; Gural Foundation; Kiran Nadar Museum of Art; JSW Foundation; Harmony Art Foundation and Devi Art Foundation, India; Bengal Foundation; Bangladesh Shilpakala Academy; Ministry of Foreign Affairs and Samacar Art Foundation, Bangladesh; Fukuoka Art Museum and LO-FTF Council Denmark.\n\nRahman participated in several workshops in India, Sikkim, China, Sri Lanka, UK, Nepal, Japan, Thailand, and Bangladesh and he has experience joining artists residences across the globe.`,
-    coverImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800',
-    status: 'published',
-    slug: 'tirthojatri-stages-successful-run-dhaka-new-york',
-    tags: ['theatre', 'dhaka', 'performance'],
-    publishedAt: new Date('2023-09-28'),
-    createdAt: new Date('2023-09-28'),
-    updatedAt: new Date('2023-09-29'),
-    createdBy: 'admin-1',
-    updatedBy: 'admin-1'
-  },
-  {
-    id: '2',
-    title: "Shastriosongeet Abong Nritya Utshar 2023 to begin tomorrow",
-    author: 'Author name',
-    description: '"Tirthojatri", directed by Tauquir Ahmed, took the stage at the Bangladesh Shilpakala Academy in Dhaka recently. This production marks...',
-    content: 'Full content for Shastriosongeet article...',
-    coverImage: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800',
-    status: 'draft',
-    slug: 'shastriosongeet-abong-nritya-utshar-2023',
-    tags: ['music', 'dance', 'festival'],
-    createdAt: new Date('2023-09-28'),
-    updatedAt: new Date('2023-09-29'),
-    createdBy: 'admin-1',
-    updatedBy: 'admin-1'
-  },
-  {
-    id: '3',
-    title: "Celebrating the best of art",
-    author: 'Author name',
-    description: '"Tirthojatri", directed by Tauquir Ahmed, took the stage at the Bangladesh Shilpakala Academy in Dhaka recently. This production marks...',
-    content: 'Full content for art celebration article...',
-    coverImage: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800',
-    status: 'draft',
-    slug: 'celebrating-best-of-art',
-    tags: ['art', 'exhibition', 'culture'],
-    createdAt: new Date('2023-09-28'),
-    updatedAt: new Date('2023-09-29'),
-    createdBy: 'admin-1',
-    updatedBy: 'admin-1'
-  },
-  {
-    id: '4',
-    title: "Korjo dhulo moyda jayna",
-    author: 'Author name',
-    description: '"Tirthojatri", directed by Tauquir Ahmed, took the stage at the Bangladesh Shilpakala Academy in Dhaka recently. This production marks...',
-    content: 'Full content for this article...',
-    coverImage: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800',
-    status: 'published',
-    slug: 'korjo-dhulo-moyda-jayna',
-    tags: ['culture', 'tradition'],
-    publishedAt: new Date('2023-09-28'),
-    createdAt: new Date('2023-09-28'),
-    updatedAt: new Date('2023-09-29'),
-    createdBy: 'admin-1',
-    updatedBy: 'admin-1'
-  },
-  {
-    id: '5',
-    title: "Tumi robo niroboe",
-    author: 'Author name',
-    description: '"Tirthojatri", directed by Tauquir Ahmed, took the stage at the Bangladesh Shilpakala Academy in Dhaka recently. This production marks...',
-    content: 'Full content for this article...',
-    coverImage: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800',
-    status: 'published',
-    slug: 'tumi-robo-niroboe',
-    tags: ['poetry', 'literature'],
-    publishedAt: new Date('2023-09-28'),
-    createdAt: new Date('2023-09-28'),
-    updatedAt: new Date('2023-09-29'),
-    createdBy: 'admin-1',
-    updatedBy: 'admin-1'
+// Fallback in-memory storage
+let inMemoryArticles: Article[] = [];
+let nextId = 1;
+
+// Helper function to get Firestore instance
+const getFirestore = () => {
+  try {
+    return firestore();
+  } catch (error) {
+    Logger.warn('Firestore not available, falling back to in-memory storage');
+    return null;
   }
-];
+};
 
 export class ArticleService {
-  // Generate slug from title
-  private generateSlug(title: string): string {
-    return title
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/-+/g, '-') // Replace multiple hyphens with single
-      .trim();
-  }
-
-  // Create new article
-  async createArticle(data: CreateArticleRequest, userId: string): Promise<Article> {
+  // Get all articles with filtering and pagination
+  async getArticles(filter?: ArticleFilter): Promise<{ articles: Article[]; pagination: any }> {
     try {
-      const newArticle: Article = {
-        id: uuidv4(),
-        title: data.title,
-        author: data.author,
-        description: data.description,
-        content: data.content,
-        coverImage: data.coverImage,
-        status: data.status,
-        slug: this.generateSlug(data.title),
-        tags: data.tags || [],
-        publishedAt: data.status === 'published' ? new Date() : undefined,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        createdBy: userId,
-        updatedBy: userId
-      };
+      const db = getFirestore();
+      if (db) {
+        // Use Firestore
+        const articlesCollection = db.collection('articles');
+        let query: firestore.Query = articlesCollection;
 
-      articles.push(newArticle);
-      Logger.info(`Article created: ${newArticle.id} - ${newArticle.title}`);
-      
-      return newArticle;
+        // Apply filters
+        if (filter?.status && filter.status !== 'all') {
+          query = query.where('status', '==', filter.status);
+        }
+
+        if (filter?.author) {
+          query = query.where('author', '==', filter.author);
+        }
+
+        if (filter?.tags && filter.tags.length > 0) {
+          query = query.where('tags', 'array-contains-any', filter.tags);
+        }
+
+        // Apply sorting
+        const sortBy = filter?.sortBy || 'createdAt';
+        const sortOrder = filter?.sortOrder || 'desc';
+        query = query.orderBy(sortBy, sortOrder);
+
+        // Apply pagination
+        const page = filter?.page || 1;
+        const limit = filter?.limit || 10;
+        const offset = (page - 1) * limit;
+        
+        query = query.limit(limit).offset(offset);
+
+        const snapshot = await query.get();
+        
+        const articles = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as Article));
+
+        // Get total count for pagination
+        const totalSnapshot = await articlesCollection.count().get();
+        const totalItems = totalSnapshot.data().count;
+        const totalPages = Math.ceil(totalItems / limit);
+
+        return {
+          articles,
+          pagination: {
+            currentPage: page,
+            totalPages,
+            totalItems,
+            hasNext: page < totalPages,
+            hasPrev: page > 1
+          }
+        };
+      } else {
+        // Use in-memory storage
+        let filteredArticles = [...inMemoryArticles];
+
+        // Apply filters
+        if (filter?.status && filter.status !== 'all') {
+          filteredArticles = filteredArticles.filter(article => article.status === filter.status);
+        }
+
+        if (filter?.author) {
+          filteredArticles = filteredArticles.filter(article => article.author === filter.author);
+        }
+
+        if (filter?.tags && filter.tags.length > 0) {
+          filteredArticles = filteredArticles.filter(article => 
+            article.tags?.some(tag => filter.tags!.includes(tag))
+          );
+        }
+
+        // Apply sorting
+        const sortBy = filter?.sortBy || 'createdAt';
+        const sortOrder = filter?.sortOrder || 'desc';
+        filteredArticles.sort((a, b) => {
+          const aValue = a[sortBy as keyof Article] || '';
+          const bValue = b[sortBy as keyof Article] || '';
+          if (sortOrder === 'desc') {
+            return bValue > aValue ? 1 : -1;
+          }
+          return aValue > bValue ? 1 : -1;
+        });
+
+        // Apply pagination
+        const page = filter?.page || 1;
+        const limit = filter?.limit || 10;
+        const offset = (page - 1) * limit;
+        const paginatedArticles = filteredArticles.slice(offset, offset + limit);
+
+        const totalItems = filteredArticles.length;
+        const totalPages = Math.ceil(totalItems / limit);
+
+        return {
+          articles: paginatedArticles,
+          pagination: {
+            currentPage: page,
+            totalPages,
+            totalItems,
+            hasNext: page < totalPages,
+            hasPrev: page > 1
+          }
+        };
+      }
     } catch (error) {
-      Logger.error('Error creating article:', error);
-      throw new Error('Failed to create article');
+      Logger.error('Error getting articles:', error);
+      throw error;
     }
   }
 
-  // Get all articles with filtering and pagination
-  async getArticles(filter: ArticleFilter = {}) {
+  // Get published articles for public view
+  async getPublishedArticles(filter?: Omit<ArticleFilter, 'status'>): Promise<{ articles: Article[]; pagination: any }> {
     try {
-      let filteredArticles = [...articles];
+      const db = getFirestore();
+      if (db) {
+        // Use Firestore
+        const articlesCollection = db.collection('articles');
+        let query: firestore.Query = articlesCollection.where('status', '==', 'published');
 
-      // Filter by status
-      if (filter.status && filter.status !== 'all') {
-        filteredArticles = filteredArticles.filter(article => article.status === filter.status);
-      }
+        // Apply search filter
+        if (filter?.search) {
+          // Note: Firestore doesn't support full-text search natively
+          // You might want to use Algolia or similar for better search
+          // For now, we'll filter client-side
+        }
 
-      // Filter by author
-      if (filter.author) {
-        filteredArticles = filteredArticles.filter(article => 
-          article.author.toLowerCase().includes(filter.author!.toLowerCase())
-        );
-      }
+        if (filter?.tags && filter.tags.length > 0) {
+          query = query.where('tags', 'array-contains-any', filter.tags);
+        }
 
-      // Search in title and description
-      if (filter.search) {
-        const searchTerm = filter.search.toLowerCase();
-        filteredArticles = filteredArticles.filter(article =>
-          article.title.toLowerCase().includes(searchTerm) ||
-          article.description.toLowerCase().includes(searchTerm)
-        );
-      }
+        // Apply sorting
+        const sortBy = filter?.sortBy || 'publishedAt';
+        const sortOrder = filter?.sortOrder || 'desc';
+        query = query.orderBy(sortBy, sortOrder);
 
-      // Filter by tags
-      if (filter.tags && filter.tags.length > 0) {
-        filteredArticles = filteredArticles.filter(article =>
-          filter.tags!.some(tag => article.tags.includes(tag))
-        );
-      }
-
-      // Sort articles
-      const sortBy = filter.sortBy || 'updatedAt';
-      const sortOrder = filter.sortOrder || 'desc';
-      
-      filteredArticles.sort((a, b) => {
-        let aValue = a[sortBy];
-        let bValue = b[sortBy];
+        // Apply pagination
+        const page = filter?.page || 1;
+        const limit = filter?.limit || 10;
+        const offset = (page - 1) * limit;
         
-        if (aValue instanceof Date) aValue = aValue.getTime();
-        if (bValue instanceof Date) bValue = bValue.getTime();
+        query = query.limit(limit).offset(offset);
+
+        const snapshot = await query.get();
         
-        if (sortOrder === 'asc') {
+        const articles = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as Article));
+
+        // Get total count for pagination
+        const totalSnapshot = await articlesCollection.where('status', '==', 'published').count().get();
+        const totalItems = totalSnapshot.data().count;
+        const totalPages = Math.ceil(totalItems / limit);
+
+        return {
+          articles,
+          pagination: {
+            currentPage: page,
+            totalPages,
+            totalItems,
+            hasNext: page < totalPages,
+            hasPrev: page > 1
+          }
+        };
+      } else {
+        // Use in-memory storage
+        let filteredArticles = inMemoryArticles.filter(article => article.status === 'published');
+
+        if (filter?.tags && filter.tags.length > 0) {
+          filteredArticles = filteredArticles.filter(article => 
+            article.tags?.some(tag => filter.tags!.includes(tag))
+          );
+        }
+
+        // Apply sorting
+        const sortBy = filter?.sortBy || 'publishedAt';
+        const sortOrder = filter?.sortOrder || 'desc';
+        filteredArticles.sort((a, b) => {
+          const aValue = a[sortBy as keyof Article] || '';
+          const bValue = b[sortBy as keyof Article] || '';
+          if (sortOrder === 'desc') {
+            return bValue > aValue ? 1 : -1;
+          }
           return aValue > bValue ? 1 : -1;
-        } else {
-          return aValue < bValue ? 1 : -1;
-        }
-      });
+        });
 
-      // Pagination
-      const page = filter.page || 1;
-      const limit = filter.limit || 10;
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      
-      const paginatedArticles = filteredArticles.slice(startIndex, endIndex);
-      const totalItems = filteredArticles.length;
-      const totalPages = Math.ceil(totalItems / limit);
+        // Apply pagination
+        const page = filter?.page || 1;
+        const limit = filter?.limit || 10;
+        const offset = (page - 1) * limit;
+        const paginatedArticles = filteredArticles.slice(offset, offset + limit);
 
-      return {
-        articles: paginatedArticles,
-        pagination: {
-          currentPage: page,
-          totalPages,
-          totalItems,
-          hasNext: page < totalPages,
-          hasPrev: page > 1
-        }
-      };
+        const totalItems = filteredArticles.length;
+        const totalPages = Math.ceil(totalItems / limit);
+
+        return {
+          articles: paginatedArticles,
+          pagination: {
+            currentPage: page,
+            totalPages,
+            totalItems,
+            hasNext: page < totalPages,
+            hasPrev: page > 1
+          }
+        };
+      }
     } catch (error) {
-      Logger.error('Error fetching articles:', error);
-      throw new Error('Failed to fetch articles');
+      Logger.error('Error getting published articles:', error);
+      throw error;
     }
   }
 
   // Get article by ID
   async getArticleById(id: string): Promise<Article | null> {
     try {
-      const article = articles.find(a => a.id === id);
-      return article || null;
+      const db = getFirestore();
+      if (db) {
+        // Use Firestore
+        const articlesCollection = db.collection('articles');
+        const doc = await articlesCollection.doc(id).get();
+        if (!doc.exists) {
+          return null;
+        }
+        return { id: doc.id, ...doc.data() } as Article;
+      } else {
+        // Use in-memory storage
+        return inMemoryArticles.find(article => article.id === id) || null;
+      }
     } catch (error) {
-      Logger.error('Error fetching article by ID:', error);
-      throw new Error('Failed to fetch article');
+      Logger.error('Error getting article by ID:', error);
+      throw error;
     }
   }
 
   // Get article by slug
   async getArticleBySlug(slug: string): Promise<Article | null> {
     try {
-      const article = articles.find(a => a.slug === slug);
-      return article || null;
+      const db = getFirestore();
+      if (db) {
+        // Use Firestore
+        const articlesCollection = db.collection('articles');
+        const snapshot = await articlesCollection.where('slug', '==', slug).limit(1).get();
+        if (snapshot.empty) {
+          return null;
+        }
+        const doc = snapshot.docs[0];
+        return { id: doc.id, ...doc.data() } as Article;
+      } else {
+        // Use in-memory storage
+        return inMemoryArticles.find(article => article.slug === slug) || null;
+      }
     } catch (error) {
-      Logger.error('Error fetching article by slug:', error);
-      throw new Error('Failed to fetch article');
+      Logger.error('Error getting article by slug:', error);
+      throw error;
+    }
+  }
+
+  // Create new article
+  async createArticle(articleData: CreateArticleRequest, userId: string): Promise<Article> {
+    try {
+      const now = new Date();
+      const slug = this.generateSlug(articleData.title);
+      
+      const articleWithMetadata = {
+        ...articleData,
+        slug,
+        createdAt: now,
+        updatedAt: now,
+        createdBy: userId,
+        updatedBy: userId,
+        publishedAt: articleData.status === 'published' ? now : null
+      };
+
+      const db = getFirestore();
+      if (db) {
+        // Use Firestore
+        const articlesCollection = db.collection('articles');
+        const docRef = await articlesCollection.add(articleWithMetadata);
+        return {
+          id: docRef.id,
+          ...articleWithMetadata
+        } as Article;
+      } else {
+        // Use in-memory storage
+        const newArticle: Article = {
+          id: nextId.toString(),
+          ...articleWithMetadata
+        } as Article;
+        inMemoryArticles.push(newArticle);
+        nextId++;
+        return newArticle;
+      }
+    } catch (error) {
+      Logger.error('Error creating article:', error);
+      throw error;
     }
   }
 
   // Update article
-  async updateArticle(id: string, data: UpdateArticleRequest, userId: string): Promise<Article | null> {
+  async updateArticle(id: string, updateData: UpdateArticleRequest, userId: string): Promise<Article | null> {
     try {
-      const articleIndex = articles.findIndex(a => a.id === id);
-      
-      if (articleIndex === -1) {
-        return null;
+      const db = getFirestore();
+      if (db) {
+        // Use Firestore
+        const articlesCollection = db.collection('articles');
+        const docRef = articlesCollection.doc(id);
+        const doc = await docRef.get();
+
+        if (!doc.exists) {
+          return null;
+        }
+
+        const now = new Date();
+        const updatePayload: any = {
+          ...updateData,
+          updatedAt: now,
+          updatedBy: userId
+        };
+
+        // Update publishedAt if status is changing to published
+        if (updateData.status === 'published') {
+          updatePayload.publishedAt = now;
+        }
+
+        await docRef.update(updatePayload);
+
+        const updatedDoc = await docRef.get();
+        return { id: updatedDoc.id, ...updatedDoc.data() } as Article;
+      } else {
+        // Use in-memory storage
+        const index = inMemoryArticles.findIndex(article => article.id === id);
+        if (index === -1) {
+          return null;
+        }
+
+        const now = new Date();
+        const updatePayload: any = {
+          ...updateData,
+          updatedAt: now,
+          updatedBy: userId
+        };
+
+        // Update publishedAt if status is changing to published
+        if (updateData.status === 'published') {
+          updatePayload.publishedAt = now;
+        }
+
+        inMemoryArticles[index] = {
+          ...inMemoryArticles[index],
+          ...updatePayload
+        };
+
+        return inMemoryArticles[index];
       }
-
-      const existingArticle = articles[articleIndex];
-      const updatedArticle: Article = {
-        ...existingArticle,
-        ...data,
-        slug: data.title ? this.generateSlug(data.title) : existingArticle.slug,
-        publishedAt: data.status === 'published' && existingArticle.status !== 'published' 
-          ? new Date() 
-          : existingArticle.publishedAt,
-        updatedAt: new Date(),
-        updatedBy: userId
-      };
-
-      articles[articleIndex] = updatedArticle;
-      Logger.info(`Article updated: ${updatedArticle.id} - ${updatedArticle.title}`);
-      
-      return updatedArticle;
     } catch (error) {
       Logger.error('Error updating article:', error);
-      throw new Error('Failed to update article');
+      throw error;
     }
   }
 
   // Delete article
   async deleteArticle(id: string): Promise<boolean> {
     try {
-      const articleIndex = articles.findIndex(a => a.id === id);
-      
-      if (articleIndex === -1) {
-        return false;
-      }
+      const db = getFirestore();
+      if (db) {
+        // Use Firestore
+        const articlesCollection = db.collection('articles');
+        const docRef = articlesCollection.doc(id);
+        const doc = await docRef.get();
 
-      const deletedArticle = articles[articleIndex];
-      articles.splice(articleIndex, 1);
-      Logger.info(`Article deleted: ${deletedArticle.id} - ${deletedArticle.title}`);
-      
-      return true;
+        if (!doc.exists) {
+          return false;
+        }
+
+        await docRef.delete();
+        return true;
+      } else {
+        // Use in-memory storage
+        const index = inMemoryArticles.findIndex(article => article.id === id);
+        if (index === -1) {
+          return false;
+        }
+
+        inMemoryArticles.splice(index, 1);
+        return true;
+      }
     } catch (error) {
       Logger.error('Error deleting article:', error);
-      throw new Error('Failed to delete article');
+      throw error;
     }
   }
 
-  // Get published articles for public view
-  async getPublishedArticles(filter: Omit<ArticleFilter, 'status'> = {}) {
-    return this.getArticles({ ...filter, status: 'published' });
-  }
-
-  // Get article tags
+  // Get all unique tags
   async getArticleTags(): Promise<string[]> {
     try {
-      const allTags = articles.reduce((tags, article) => {
-        return [...tags, ...article.tags];
-      }, [] as string[]);
-      
-      return [...new Set(allTags)].sort();
+      const db = getFirestore();
+      if (db) {
+        // Use Firestore
+        const articlesCollection = db.collection('articles');
+        const snapshot = await articlesCollection.get();
+        const tags = new Set<string>();
+        
+        snapshot.docs.forEach(doc => {
+          const article = doc.data() as Article;
+          if (article.tags) {
+            article.tags.forEach(tag => tags.add(tag));
+          }
+        });
+
+        return Array.from(tags);
+      } else {
+        // Use in-memory storage
+        const tags = new Set<string>();
+        inMemoryArticles.forEach(article => {
+          if (article.tags) {
+            article.tags.forEach(tag => tags.add(tag));
+          }
+        });
+        return Array.from(tags);
+      }
     } catch (error) {
-      Logger.error('Error fetching article tags:', error);
-      throw new Error('Failed to fetch tags');
+      Logger.error('Error getting article tags:', error);
+      throw error;
     }
+  }
+
+  // Generate URL-friendly slug from title
+  private generateSlug(title: string): string {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
   }
 } 
