@@ -1,0 +1,11 @@
+{
+  "name": "track-my-show",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "yarn workspace track-my-show-frontend dev"
+  }
+}

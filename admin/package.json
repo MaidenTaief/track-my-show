@@ -1,0 +1,8 @@
+{
+  "name": "track-my-show-admin",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'Admin panel coming soon...'"
+  }
+} 

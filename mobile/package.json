@@ -1,0 +1,8 @@
+{
+  "name": "track-my-show-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'Mobile app coming soon...'"
+  }
+} 
