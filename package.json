@@ -1,16 +1,28 @@
 {
-  "name": "track-my-show",
+  "name": "track-my-show-backend",
   "version": "1.0.0",
-  "private": true,
-  "workspaces": [
-    "frontend",
-    "backend",
-    "admin",
-    "mobile"
-  ],
+  "main": "src/app.ts",
+  "license": "MIT",
   "scripts": {
-    "dev": "npm run dev --workspace=frontend",
-    "dev:backend": "npm run dev --workspace=backend",
-    "build": "npm run build --workspace=frontend"
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "morgan": "^1.10.0",
+    "dotenv": "^16.3.1",
+    "typeorm": "^0.3.17"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/helmet": "^7.0.0",
+    "@types/morgan": "^1.9.4",
+    "@types/node": "^20.11.30",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.0.0"
   }
 } 
