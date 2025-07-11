@@ -1,3 +1,4 @@
+import './config/firebase';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -7,6 +8,7 @@ import { errorHandler } from './middleware/errorHandler';
 import { notFoundHandler } from './middleware/notFoundHandler';
 import { Logger } from './utils/Logger';
 import articleRoutes from './routes/articleRoutes';
+import organizerRoutes from './routes/organizerRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -35,6 +37,7 @@ app.get('/health', (req, res) => {
 
 // Mount real API routes
 app.use('/api/articles', articleRoutes);
+app.use('/api/organizers', organizerRoutes);
 
 // Error handling middleware (must be last)
 app.use(notFoundHandler);

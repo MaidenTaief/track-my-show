@@ -1,0 +1,47 @@
+// ---
+// TrackMyShow Project: Article Routes Overview
+//
+// This file is exported from the TrackMyShow backend (Express + TypeScript).
+//
+// Project context:
+// - Modular Express backend with Firestore (Firebase) for persistent storage
+// - Article CRUD is fully implemented and integrated with Firestore
+// - API endpoints are RESTful, mounted at /api/articles
+// - Auth, organizer, event, and other modules are being developed in a similar pattern
+// - The frontend (Vite/React) connects via a configurable API URL (see README)
+//
+// Code structure explained:
+// - This file defines the Express router for all article-related endpoints (CRUD)
+// - It imports the ArticleController, which contains the business logic for each route
+// - The controller interacts with the ArticleService, which abstracts Firestore access
+// - The Article model defines the Firestore schema and TypeScript types
+// - Each route is protected or public as needed (add auth middleware for protected routes)
+// - The pattern is scalable: replicate this structure for organizers, events, etc.
+//
+// How to extend:
+// - To add new resources (e.g., organizers, events), create similar routes, controllers, and models
+// - Use the same modular approach for maintainability and testability
+//
+// Current state: Backend and frontend are now reliably connected, Firestore is working, and the project is ready for further feature expansion.
+// ---
+
+import { Router } from 'express';
+import { ArticleController } from '../controllers/ArticleController';
+
+const router = Router();
+const articleController = new ArticleController();
+
+// Admin routes (require authentication in real app)
+router.get('/', articleController.getArticles);
+router.get('/tags', articleController.getArticleTags);
+router.get('/:id', articleController.getArticleById);
+router.post('/', articleController.createArticle);
+router.put('/:id', articleController.updateArticle);
+router.delete('/:id', articleController.deleteArticle);
+router.patch('/:id/status', articleController.updateArticleStatus);
+
+// Public routes
+router.get('/published/list', articleController.getPublishedArticles);
+router.get('/slug/:slug', articleController.getArticleBySlug);
+
+export default router; 

@@ -1,4 +1,4 @@
-import { firestore } from 'firebase-admin';
+import { admin } from '../config/firebase';
 import { Article, CreateArticleRequest, UpdateArticleRequest, ArticleFilter } from '../models/Article';
 import { Logger } from '../utils/Logger';
 
@@ -9,7 +9,7 @@ let nextId = 1;
 // Helper function to get Firestore instance
 const getFirestore = () => {
   try {
-    return firestore();
+    return admin.firestore();
   } catch (error) {
     Logger.warn('Firestore not available, falling back to in-memory storage');
     return null;
@@ -24,7 +24,7 @@ export class ArticleService {
       if (db) {
         // Use Firestore
         const articlesCollection = db.collection('articles');
-        let query: firestore.Query = articlesCollection;
+        let query: admin.firestore.Query = articlesCollection;
 
         // Apply filters
         if (filter?.status && filter.status !== 'all') {
@@ -137,7 +137,7 @@ export class ArticleService {
       if (db) {
         // Use Firestore
         const articlesCollection = db.collection('articles');
-        let query: firestore.Query = articlesCollection.where('status', '==', 'published');
+        let query: admin.firestore.Query = articlesCollection.where('status', '==', 'published');
 
         // Apply search filter
         if (filter?.search) {

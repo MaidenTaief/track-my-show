@@ -13,6 +13,7 @@ import CreateUser from './admin/CreateUser';
 import HomepageManager from './admin/HomepageManager';
 import ReviewsManager from './admin/ReviewsManager';
 import LiveEventManager from './admin/LiveEventManager';
+import CreateOrganizer from './admin/CreateOrganizer';
 
 // Client Components
 import Homepage from './client/Homepage';
@@ -79,6 +80,11 @@ const AppRouter: React.FC = () => {
         <Route path="/admin/organizers" element={
           <ProtectedRoute>
             <OrganizerManager />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/organizers/new" element={
+          <ProtectedRoute>
+            <CreateOrganizer />
           </ProtectedRoute>
         } />
         <Route path="/admin/users/create" element={

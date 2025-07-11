@@ -1,45 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminLayout from './AdminLayout';
 import { Search, Plus, Mail, Phone, Building } from 'lucide-react';
+import { organizerService, Organizer } from '../../services/organizerService';
+import { useNavigate } from 'react-router-dom';
 
 const OrganizerManager = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [organizers, setOrganizers] = useState<Organizer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  const organizers = [
-    {
-      id: 1,
-      name: "Bangladesh Shilpakala Academy",
-      email: "info@bsa.gov.bd",
-      phone: "+880 2 9661301",
-      company: "Government Cultural Institution",
-      eventsCount: 15,
-      status: "Active"
-    },
-    {
-      id: 2,
-      name: "Dhaka Theatre",
-      email: "contact@dhakatheatre.com", 
-      phone: "+880 1712 345678",
-      company: "Theatre Company",
-      eventsCount: 8,
-      status: "Active"
-    },
-    {
-      id: 3,
-      name: "Cultural Events BD",
-      email: "events@culturalbd.com",
-      phone: "+880 1898 765432", 
-      company: "Event Management",
-      eventsCount: 23,
-      status: "Inactive"
-    }
-  ];
+  useEffect(() => {
+    const fetchOrganizers = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await organizerService.getOrganizers();
+        setOrganizers(response.data);
+      } catch (err) {
+        setError('Failed to load organizers');
+        setOrganizers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrganizers();
+  }, []);
 
   return (
     <AdminLayout 
       title="Organizers"
       rightActions={
-        <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded flex items-center gap-2">
+        <button
+          onClick={() => navigate('/admin/organizers/new')}
+          className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded flex items-center gap-2"
+        >
           <Plus size={16} />
           New Organizer
         </button>
@@ -61,6 +57,10 @@ const OrganizerManager = () => {
           </div>
         </div>
 
+        {/* Loading/Error */}
+        {loading && <div className="text-white">Loading organizers...</div>}
+        {error && <div className="text-red-500">{error}</div>}
+
         {/* Organizers Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {organizers.map((organizer) => (
@@ -70,14 +70,14 @@ const OrganizerManager = () => {
                   <Building size={24} className="text-white" />
                 </div>
                 <span className={`px-2 py-1 rounded text-xs ${
-                  organizer.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  organizer.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                 }`}>
                   {organizer.status}
                 </span>
               </div>
 
               <h3 className="text-lg font-semibold text-white mb-2">{organizer.name}</h3>
-              <p className="text-gray-400 text-sm mb-4">{organizer.company}</p>
+              <p className="text-gray-400 text-sm mb-4">{organizer.category}</p>
 
               <div className="space-y-2 mb-4">
                 <div className="flex items-center gap-2 text-gray-400">
@@ -92,7 +92,7 @@ const OrganizerManager = () => {
 
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-400">
-                  {organizer.eventsCount} events
+                  {organizer.followersCount ?? 0} followers
                 </span>
                 <div className="flex gap-2">
                   <button className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm">
